@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.example</groupId>
 	<artifactId>dev</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<packaging>war</packaging>
 	<name>dev</name>
 	<description>Demo project for Spring Boot</description>
@@ -72,6 +72,14 @@
 
 	<build>
 		<plugins>
+			<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-compiler-plugin</artifactId>
+        		<version>3.8.1</version> <!-- 이 버전은 Java 17을 지원합니다 -->
+        		<configuration>
+            		<release>17</release> <!-- Java 17을 명시적으로 지정 -->
+        		</configuration>
+    		</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
