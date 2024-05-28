@@ -2,17 +2,17 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-token'
         DOCKER_IMAGE = 'sb8citizen/wartoimg'
-        GIT_CREDENTIALS_ID = 'github-credentials'
-        YAML_REPO_URL = 'https://github.com/ldk9205/yaml.git'
+        GIT_CREDENTIALS_ID = 'github-token'
+        YAML_REPO_URL = 'https://github.com/ldk9205/test-yaml.git'
         YAML_REPO_BRANCH = 'main'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/ldk9205/war.git'
+                git branch: 'main', url: 'https://github.com/ldk9205/CICD-Spring.git'
             }
         }
 
