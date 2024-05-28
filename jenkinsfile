@@ -113,10 +113,9 @@ pipeline {
                     else
                       git checkout -b main
                     fi
-                    pwd
 
-                    cp ../deployment.yaml ./
-                    cp ../service.yaml ./
+                    cp ./deployment.yaml ./yaml-repo
+                    cp ./service.yaml ./yaml-repo
                     git add .
                     git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
                     git push origin main
