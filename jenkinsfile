@@ -60,69 +60,71 @@ pipeline {
         stage('Generate K8s YAML') {
             steps {
                 script {
-                    def deploymentYaml = """
-                    apiVersion: apps/v1
-                    kind: Deployment
-                    metadata:
-                      name: test-deployment
-                      labels:
-                        app: test
-                    spec:
-                      replicas: 3
-                      selector:
-                        matchLabels:
-                          app: test
-                      template:
+                    docker.withRegistry('', GIT_CREDENTIALS_ID) {
+                        def deploymentYaml = """
+                        apiVersion: apps/v1
+                        kind: Deployment
                         metadata:
-                          labels:
+                        name: test-deployment
+                        labels:
                             app: test
                         spec:
-                          containers:
-                          - name: test-container
-                            image: ${DOCKER_IMAGE}:${BUILD_NUMBER}
-                            ports:
-                            - containerPort: 8080
-                    """
+                        replicas: 3
+                        selector:
+                            matchLabels:
+                            app: test
+                        template:
+                            metadata:
+                            labels:
+                                app: test
+                            spec:
+                            containers:
+                            - name: test-container
+                                image: ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                                ports:
+                                - containerPort: 8080
+                        """
 
-                    def serviceYaml = """
-                    apiVersion: v1
-                    kind: Service
-                    metadata:
-                      name: test-service
-                    spec:
-                      type: NodePort
-                      selector:
-                        app: test
-                      ports:
-                      - protocol: TCP
-                        port: 80
-                        targetPort: 8080
-                        nodePort: 30007
-                    """
+                        def serviceYaml = """
+                        apiVersion: v1
+                        kind: Service
+                        metadata:
+                        name: test-service
+                        spec:
+                        type: NodePort
+                        selector:
+                            app: test
+                        ports:
+                        - protocol: TCP
+                            port: 80
+                            targetPort: 8080
+                            nodePort: 30007
+                        """
 
-                    writeFile file: 'deployment.yaml', text: deploymentYaml
-                    writeFile file: 'service.yaml', text: serviceYaml
+                        writeFile file: 'deployment.yaml', text: deploymentYaml
+                        writeFile file: 'service.yaml', text: serviceYaml
 
-                    sh '''
-                    if [ ! -d "yaml-repo" ]; then
-                      git clone ${YAML_REPO_URL} yaml-repo
-                    fi
+                        sh '''
+                        if [ ! -d "yaml-repo" ]; then
+                        git clone ${YAML_REPO_URL} yaml-repo
+                        fi
 
-                    git config --global --add safe.directory /var/lib/jenkins/workspace/test2/yaml-repo
-                    cd yaml-repo
+                        git config --global --add safe.directory /var/lib/jenkins/workspace/test2/yaml-repo
+                        cd yaml-repo
 
-                    if git show-ref --quiet refs/heads/main; then
-                      git checkout main
-                    else
-                      git checkout -b main
-                    fi
+                        if git show-ref --quiet refs/heads/main; then
+                        git checkout main
+                        else
+                        git checkout -b main
+                        fi
 
-                    cp ../deployment.yaml ./
-                    cp ../service.yaml ./
-                    git add .
-                    git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
-                    git push origin main
-                    '''
+                        cp ../deployment.yaml ./
+                        cp ../service.yaml ./
+                        git add .
+                        git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
+                        git push origin main
+                        '''
+                    }
                 }
             }
         }
