@@ -15,6 +15,12 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/ldk9205/CICD-Spring.git'
             }
         }
+        
+        stage('Set Permissions') {
+            steps {
+                sh 'chmod +x ./mvnw'
+            }
+        }
 
         stage('Build WAR') {
             steps {
