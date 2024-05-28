@@ -104,12 +104,8 @@ pipeline {
                     writeFile file: 'service.yaml', text: serviceYaml
 
                     sh '''
-                    if [ -d "yaml-repo" ]; then
-                      cd yaml-repo
-                      git pull origin main
-                    else
+                    if [ ! -d "yaml-repo" ]; then
                       git clone ${YAML_REPO_URL} yaml-repo
-                      cd yaml-repo
                     fi
 
                     if git show-ref --quiet refs/heads/main; then
