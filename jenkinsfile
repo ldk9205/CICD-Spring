@@ -112,6 +112,9 @@ pipeline {
                         git config --global --add safe.directory /var/lib/jenkins/workspace/test2/yaml-repo
                         cd yaml-repo
 
+                        git config user.name "${GIT_USERNAME}"
+                        git config user.email "${GIT_USERNAME}@example.com"
+
                         if git show-ref --quiet refs/heads/main; then
                         git checkout main
                         else
