@@ -24,8 +24,7 @@ pipeline {
 
         stage('Build WAR') {
             steps {
-                // sh './mvnw clean package'
-                sh 'mvn -N io.takari:maven:wrapper'
+                sh './mvnw clean package'
             }
             post {
                 success {
