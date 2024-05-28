@@ -125,7 +125,7 @@ pipeline {
                         cp ../service.yaml ./
                         git add .
                         git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
-                        git push origin main
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${YAML_REPO_URL} main
                         '''
                     }
                 }
