@@ -105,6 +105,7 @@ pipeline {
 
                     sh 'git clone ${YAML_REPO_URL} yaml-repo'
                     dir('yaml-repo') {
+                        sh 'git branch -M ${YAML_REPO_BRANCH}'
                         sh 'git checkout ${YAML_REPO_BRANCH}'
                         sh 'cp ../deployment.yaml ./'
                         sh 'cp ../service.yaml ./'
