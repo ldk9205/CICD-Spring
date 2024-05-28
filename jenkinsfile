@@ -103,26 +103,28 @@ pipeline {
                     writeFile file: 'deployment.yaml', text: deploymentYaml
                     writeFile file: 'service.yaml', text: serviceYaml
 
-                    sh '''
-                    if [ ! -d "yaml-repo" ]; then
-                      git clone ${YAML_REPO_URL} yaml-repo
-                    fi
+                    withCredentials([usernamePassword(credentialsId: env.GIT_CREDENTIALS_ID, passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh '''
+                        if [ ! -d "yaml-repo" ]; then
+                        git clone ${YAML_REPO_URL} yaml-repo
+                        fi
 
-                    git config --global --add safe.directory /var/lib/jenkins/workspace/test2/yaml-repo
-                    cd yaml-repo
+                        git config --global --add safe.directory /var/lib/jenkins/workspace/test2/yaml-repo
+                        cd yaml-repo
 
-                    if git show-ref --quiet refs/heads/main; then
-                      git checkout main
-                    else
-                      git checkout -b main
-                    fi
+                        if git show-ref --quiet refs/heads/main; then
+                        git checkout main
+                        else
+                        git checkout -b main
+                        fi
 
-                    cp ../deployment.yaml ./
-                    cp ../service.yaml ./
-                    git add .
-                    git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
-                    git push origin main
-                    '''
+                        cp ../deployment.yaml ./
+                        cp ../service.yaml ./
+                        git add .
+                        git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
+                        git push origin main
+                        '''
+                    }
                 }
             }
         }
