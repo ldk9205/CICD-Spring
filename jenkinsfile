@@ -103,15 +103,27 @@ pipeline {
                     writeFile file: 'deployment.yaml', text: deploymentYaml
                     writeFile file: 'service.yaml', text: serviceYaml
 
-                    sh 'git clone ${YAML_REPO_URL} yaml-repo'
-                    dir('yaml-repo') {
-                        sh 'git branch -M ${YAML_REPO_BRANCH}'
-                        sh 'git checkout ${YAML_REPO_BRANCH}'
-                        sh 'cp ../deployment.yaml ./'
-                        sh 'cp ../service.yaml ./'
-                        sh 'git add .'
-                        sh 'git commit -m "Add deployment and service yaml files for build ${BUILD_NUMBER}"'
-                        sh 'git push origin ${YAML_REPO_BRANCH}'
+                    sh '''
+                    if [ -d "yaml-repo" ]; then
+                      cd yaml-repo
+                      git pull origin main
+                    else
+                      git clone ${YAML_REPO_URL} yaml-repo
+                      cd yaml-repo
+                    fi
+
+                    if git show-ref --quiet refs/heads/main; then
+                      git checkout main
+                    else
+                      git checkout -b main
+                    fi
+
+                    cp ../deployment.yaml ./
+                    cp ../service.yaml ./
+                    git add .
+                    git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
+                    git push origin main
+                    '''
                     }
                 }
             }
