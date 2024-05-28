@@ -113,6 +113,7 @@ pipeline {
                     else
                       git checkout -b main
                     fi
+                    pwd
 
                     cp ../deployment.yaml ./
                     cp ../service.yaml ./
