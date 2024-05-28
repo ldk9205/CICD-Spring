@@ -1,0 +1,122 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        DOCKER_IMAGE = 'sb8citizen/wartoimg'
+        GIT_CREDENTIALS_ID = 'github-credentials'
+        YAML_REPO_URL = 'https://github.com/ldk9205/yaml.git'
+        YAML_REPO_BRANCH = 'main'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ldk9205/war.git'
+            }
+        }
+
+        stage('Build WAR') {
+            steps {
+                sh './mvnw clean package'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: '**/target/*.war', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def dockerfile = '''
+                    FROM tomcat:10.1-jdk17
+                    COPY target/*.war /usr/local/tomcat/webapps/test.war
+                    RUN sed -i '/<\/Host>/ i\\    <Context path="" docBase="test" reloadable="false" />' /usr/local/tomcat/conf/server.xml
+                    '''
+                    writeFile file: 'Dockerfile', text: dockerfile
+                    sh 'docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
+                        sh 'docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}'
+                    }
+                }
+            }
+        }
+
+        stage('Generate K8s YAML') {
+            steps {
+                script {
+                    def deploymentYaml = """
+                    apiVersion: apps/v1
+                    kind: Deployment
+                    metadata:
+                      name: test-deployment
+                      labels:
+                        app: test
+                    spec:
+                      replicas: 2
+                      selector:
+                        matchLabels:
+                          app: test
+                      template:
+                        metadata:
+                          labels:
+                            app: test
+                        spec:
+                          containers:
+                          - name: test-container
+                            image: ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                            ports:
+                            - containerPort: 8080
+                    """
+
+                    def serviceYaml = """
+                    apiVersion: v1
+                    kind: Service
+                    metadata:
+                      name: test-service
+                    spec:
+                      type: NodePort
+                      selector:
+                        app: test
+                      ports:
+                      - protocol: TCP
+                        port: 80
+                        targetPort: 8080
+                        nodePort: 30007
+                    """
+
+                    writeFile file: 'deployment.yaml', text: deploymentYaml
+                    writeFile file: 'service.yaml', text: serviceYaml
+
+                    sh 'git clone ${YAML_REPO_URL} yaml-repo'
+                    dir('yaml-repo') {
+                        sh 'git checkout ${YAML_REPO_BRANCH}'
+                        sh 'cp ../deployment.yaml ./'
+                        sh 'cp ../service.yaml ./'
+                        sh 'git add .'
+                        sh 'git commit -m "Add deployment and service yaml files for build ${BUILD_NUMBER}"'
+                        sh 'git push origin ${YAML_REPO_BRANCH}'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
