@@ -5,7 +5,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'dockerhub-token'
         DOCKER_IMAGE = 'sb8citizen/wartoimg'
         GIT_CREDENTIALS_ID = 'github-token'
-        YAML_REPO_URL = 'https://github.com/ldk9205/yaml.git'
+        YAML_REPO_URL = 'github.com/ldk9205/yaml.git'
         YAML_REPO_BRANCH = 'main'
     }
 
@@ -47,15 +47,15 @@ pipeline {
             }
         }
 
-        // stage('Push Docker Image') {
-        //     steps {
-        //         script {
-        //             docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
-        //                 sh 'docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}'
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
+                        sh 'docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}'
+                    }
+                }
+            }
+        }
 
         stage('Generate K8s YAML') {
             steps {
@@ -106,7 +106,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: env.GIT_CREDENTIALS_ID, passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                         sh '''
                         if [ ! -d "yaml-repo" ]; then
-                        git clone ${YAML_REPO_URL} yaml-repo
+                        git clone https://${YAML_REPO_URL} yaml-repo
                         fi
 
                         git config --global --add safe.directory /var/lib/jenkins/workspace/test2/yaml-repo
@@ -125,10 +125,6 @@ pipeline {
                         cp ../service.yaml ./
                         git add .
                         git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
-
-                        echo ${GIT_USERNAME}
-                        echo ${GIT_PASSWORD}
-                        echo ${YAML_REPO_URL}
 
                         git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${YAML_REPO_URL} main
                         '''
