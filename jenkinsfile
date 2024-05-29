@@ -47,15 +47,15 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
-                        sh 'docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}'
-                    }
-                }
-            }
-        }
+        // stage('Push Docker Image') {
+        //     steps {
+        //         script {
+        //             docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
+        //                 sh 'docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}'
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Generate K8s YAML') {
             steps {
@@ -125,7 +125,12 @@ pipeline {
                         cp ../service.yaml ./
                         git add .
                         git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
-                        git push origin main
+
+                        echo ${GIT_USERNAME}
+                        echo ${GIT_PASSWORD}
+                        echo ${YAML_REPO_URL}
+
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${YAML_REPO_URL} main
                         '''
                     }
                 }
