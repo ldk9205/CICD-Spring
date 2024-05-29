@@ -51,7 +51,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
-                        sh 'docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}'
+                        sh 'docker push ${DOCKER_IMAGE}:0.${BUILD_NUMBER}'
                     }
                 }
             }
