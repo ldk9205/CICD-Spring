@@ -68,6 +68,7 @@ pipeline {
                       labels:
                         app: test
                     spec:
+                      revisionHistoryLimit: 2
                       replicas: 3
                       selector:
                         matchLabels:
