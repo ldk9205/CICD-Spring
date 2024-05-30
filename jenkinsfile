@@ -121,6 +121,13 @@ pipeline {
                         git checkout -b main
                         fi
 
+                        if [ -f deployment.yaml ]; then
+                          git rm deployment.yaml
+                        fi
+                        if [ -f service.yaml ]; then
+                          git rm service.yaml
+                        fi
+
                         mkdir -p resources/app/demo
                         cp ../deployment.yaml resources/app/demo/
                         cp ../service.yaml resources/app/demo/
