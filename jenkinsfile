@@ -121,8 +121,9 @@ pipeline {
                         git checkout -b main
                         fi
 
-                        cp ../deployment.yaml ./
-                        cp ../service.yaml ./
+                        mkdir -p resources/app/demo
+                        cp ../deployment.yaml resources/app/demo/
+                        cp ../service.yaml resources/app/demo/
                         git add .
                         git commit -m 'Add deployment and service yaml files for build ${env.BUILD_NUMBER}'
 
