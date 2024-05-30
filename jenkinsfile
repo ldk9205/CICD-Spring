@@ -36,7 +36,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def tag = env.BUILD_NUMBER.toInteger() / 100.0
+                    def tag = String.format("%.2f", env.BUILD_NUMBER.toInteger() / 100.0)
                     def dockerfile = '''
                     FROM tomcat:10.1-jdk17
                     COPY target/*.war /usr/local/tomcat/webapps/test.war
@@ -51,6 +51,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
+                    def tag = String.format("%.2f", env.BUILD_NUMBER.toInteger() / 100.0)
                     docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
                         sh 'docker push ${DOCKER_IMAGE}:${tag}'
                     }
@@ -61,6 +62,7 @@ pipeline {
         stage('Generate K8s YAML') {
             steps {
                 script {
+                    def tag = String.format("%.2f", env.BUILD_NUMBER.toInteger() / 100.0)
                     def deploymentYaml = """
                     apiVersion: apps/v1
                     kind: Deployment
