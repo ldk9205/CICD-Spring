@@ -36,15 +36,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def tag = String.format("%.2f", env.BUILD_NUMBER.toInteger() / 100.0)
+                    
                     def dockerfile = '''
                     FROM tomcat:10.1-jdk17
                     COPY target/*.war /usr/local/tomcat/webapps/test.war
                     RUN sed -i '/<\\/Host>/ i\\    <Context path="" docBase="test" reloadable="false" />' /usr/local/tomcat/conf/server.xml
                     '''
                     writeFile file: 'Dockerfile', text: dockerfile
-                    sh 'echo ${tag}'
-                    sh 'docker build -t ${DOCKER_IMAGE}:${tag} .'
+                    sh 'docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} .'
                 }
             }
         }
@@ -52,9 +51,9 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    def tag = String.format("%.2f", env.BUILD_NUMBER.toInteger() / 100.0)
+                    
                     docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
-                        sh 'docker push ${DOCKER_IMAGE}:${tag}'
+                        sh 'docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}'
                     }
                 }
             }
@@ -63,7 +62,7 @@ pipeline {
         stage('Generate K8s YAML') {
             steps {
                 script {
-                    def tag = String.format("%.2f", env.BUILD_NUMBER.toInteger() / 100.0)
+                    
                     def deploymentYaml = """
                     apiVersion: apps/v1
                     kind: Deployment
@@ -83,7 +82,7 @@ pipeline {
                         spec:
                           containers:
                           - name: test-container
-                            image: ${DOCKER_IMAGE}:${tag}
+                            image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
                             ports:
                             - containerPort: 8080
                     """
