@@ -36,13 +36,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    def tag = env.BUILD_NUMBER.toInteger() / 100.0
                     def dockerfile = '''
                     FROM tomcat:10.1-jdk17
                     COPY target/*.war /usr/local/tomcat/webapps/test.war
                     RUN sed -i '/<\\/Host>/ i\\    <Context path="" docBase="test" reloadable="false" />' /usr/local/tomcat/conf/server.xml
                     '''
                     writeFile file: 'Dockerfile', text: dockerfile
-                    sh 'docker build -t ${DOCKER_IMAGE}:0.${BUILD_NUMBER} .'
+                    sh 'docker build -t ${DOCKER_IMAGE}:${tag} .'
                 }
             }
         }
@@ -51,7 +52,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
-                        sh 'docker push ${DOCKER_IMAGE}:0.${BUILD_NUMBER}'
+                        sh 'docker push ${DOCKER_IMAGE}:${tag}'
                     }
                 }
             }
@@ -79,7 +80,7 @@ pipeline {
                         spec:
                           containers:
                           - name: test-container
-                            image: ${DOCKER_IMAGE}:0.${BUILD_NUMBER}
+                            image: ${DOCKER_IMAGE}:${tag}
                             ports:
                             - containerPort: 8080
                     """
